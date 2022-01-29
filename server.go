@@ -29,8 +29,8 @@ func NewServer(ip string, port int) *Server {
 
 //监听广播,创建为一个goroutine来模拟为服务
 func (this *Server) listenMessage() {
-	msg := <-this.Message
 	for {
+		msg := <-this.Message
 		//将onlineMap锁上
 		this.mapLock.Lock()
 		for _, user := range this.OnlineMap {
@@ -44,11 +44,9 @@ func (this *Server) listenMessage() {
 func (this *Server)  BroadCast(user *User,msg string) {
 	sendMsg := user.Name + " : " + msg
 	this.Message <- sendMsg
-
 }
 
 func (this *Server) Handler(conn net.Conn) {
-
     //将用户加入表中
 	user := NewUser(conn)
 	this.mapLock.Lock()
@@ -74,9 +72,8 @@ func (this *Server) start() {
 			fmt.Printf("liseter.Accpet err:",err)
 			continue
 		}
-		//do handler
+		//do handler,异步非阻塞
 		go this.Handler(conn)
-		//启动监听Message的goroutine
 	}
 
 	defer listener.Close()
