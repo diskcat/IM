@@ -33,6 +33,11 @@ func NewUser(conn net.Conn,server *Server) *User {
 
 } 
 
+//给当前用户发送消息
+func (this *User)sendMessage(msg string)  {
+	this.conn.Write([]byte(msg))
+}
+
 func (this *User) Online(){
 	this.server.mapLock.Lock()
 	this.server.OnlineMap[this.Name] = this
@@ -48,7 +53,20 @@ func (this *User) Offline(){
 }
 
 func (this *User) DoMessage(msg string)  {
-	this.server.BroadCast(this,msg)
+	if msg == "who" {
+		startMessage := "在线的用户如下：\n================\n" 
+		this.sendMessage(startMessage)
+		this.server.mapLock.Lock()
+		for _, user := range this.server.OnlineMap {
+			onlineMsg := user.Name+" : " + "在线\n"
+			this.sendMessage(onlineMsg)
+		}
+		this.server.mapLock.Unlock()
+		endMessage := "================\n" 
+		this.sendMessage(endMessage)
+	}else {
+		this.server.BroadCast(this,msg)
+	}
 }
 
 //监听当前chan的消息，一旦有消息就发送给user
