@@ -2,6 +2,7 @@ package main
 
 import (
 	"net"
+	"strings"
 )
 
 //创建用户结构体
@@ -57,13 +58,23 @@ func (this *User) DoMessage(msg string)  {
 		startMessage := "在线的用户如下：\n================\n" 
 		this.sendMessage(startMessage)
 		this.server.mapLock.Lock()
-		for _, user := range this.server.OnlineMap {
-			onlineMsg := user.Name+" : " + "在线\n"
+		for name, _ := range this.server.OnlineMap {
+			onlineMsg := name+" : " + "在线\n"
 			this.sendMessage(onlineMsg)
 		}
 		this.server.mapLock.Unlock()
 		endMessage := "================\n" 
 		this.sendMessage(endMessage)
+	}else if len(msg) > 7 && msg[:7]=="rename|"{	
+		userName := strings.Split(msg,"|")[1]
+		if _, ok := this.server.OnlineMap[userName]; ok {
+			this.sendMessage("用户名已经存在\n")
+		}else{
+			this.server.mapLock.Lock()
+			delete(this.server.OnlineMap, this.Name)
+			this.server.OnlineMap[userName] = this
+			this.server.mapLock.Unlock()
+		}
 	}else {
 		this.server.BroadCast(this,msg)
 	}
