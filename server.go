@@ -49,19 +49,15 @@ func (this *Server)  BroadCast(user *User,msg string) {
 
 func (this *Server) Handler(conn net.Conn) {
     //将用户加入表中
-	user := NewUser(conn)
-	this.mapLock.Lock()
-	this.OnlineMap[user.Name] = user
-	this.mapLock.Unlock()
-	//将消息发送到message中,进行广播
-	this.BroadCast(user,"上线了")
+	user := NewUser(conn,this)
+	user.Online()
 	//接收客户端发送的消息
 	go func(){
 		buf := make([]byte, 4096)
 		for {
 			n, err := conn.Read(buf)
 			if n == 0 {
-				this.BroadCast(user, "下线")
+				user.Offline()
 				return
 			}
 
@@ -72,8 +68,7 @@ func (this *Server) Handler(conn net.Conn) {
 
 			//接收传输的message
 			msg := string(buf[:n-1])
-			fmt.Printf(msg)
-			this.BroadCast(user, msg)
+			user.DoMessage(msg)
 		}
 	}()
 }

@@ -10,10 +10,11 @@ type User struct {
 	Addr string
 	C chan string
 	conn net.Conn
+	server *Server
 }
 
 //创建一个用户的API
-func NewUser(conn net.Conn) *User {
+func NewUser(conn net.Conn,server *Server) *User {
 
 	userAddr := conn.RemoteAddr().String()
 
@@ -22,6 +23,7 @@ func NewUser(conn net.Conn) *User {
 		Addr : userAddr,
 		C : make(chan string),
 		conn : conn,
+		server : server,
 	}
 
 	//启动监听是否接受到消息
@@ -30,6 +32,24 @@ func NewUser(conn net.Conn) *User {
 	return user
 
 } 
+
+func (this *User) Online(){
+	this.server.mapLock.Lock()
+	this.server.OnlineMap[this.Name] = this
+	this.server.mapLock.Unlock()
+	this.server.BroadCast(this,"上线")
+}
+
+func (this *User) Offline(){
+	this.server.mapLock.Lock()
+	delete(this.server.OnlineMap,this.Name)
+	this.server.mapLock.Unlock()
+	this.server.BroadCast(this,"下线")
+}
+
+func (this *User) DoMessage(msg string)  {
+	this.server.BroadCast(this,msg)
+}
 
 //监听当前chan的消息，一旦有消息就发送给user
 func (this *User) listenMessage() {
