@@ -74,6 +74,8 @@ func (this *User) DoMessage(msg string)  {
 			delete(this.server.OnlineMap, this.Name)
 			this.server.OnlineMap[userName] = this
 			this.server.mapLock.Unlock()
+			this.Name = userName
+			this.sendMessage("用户名更改成功\n")
 		}
 	}else {
 		this.server.BroadCast(this,msg)
