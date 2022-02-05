@@ -80,7 +80,7 @@ func (this *Server) Handler(conn net.Conn) {
 			//当前用户是活跃的
 			case <-isLive:
 				
-			case <-time.After(time.Second * 10):
+			case <-time.After(time.Second * 300):
 				user.sendMessage("你被踢了")
 
 				close(user.C)

@@ -77,6 +77,21 @@ func (this *User) DoMessage(msg string)  {
 			this.Name = userName
 			this.sendMessage("用户名更改成功\n")
 		}
+	}else if len(msg) > 4 && msg[:3]=="to|"{ //to|name|xxx
+		name := strings.Split(msg,"|")[1]
+		if name == "" {
+			this.sendMessage("输入的格式错误,格式例如: to|name|xxx\n")
+			return 
+		}
+		remoteUser, ok := this.server.OnlineMap[name]
+		if !ok {
+			this.sendMessage("改用户不存在\n")
+			return 
+		}
+
+		//获取要发送的数据
+		content := strings.Split(msg,"|")[2]
+		remoteUser.sendMessage(this.Name+"对您说 : "+content)
 	}else {
 		this.server.BroadCast(this,msg)
 	}
